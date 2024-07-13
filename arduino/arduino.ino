@@ -1,32 +1,33 @@
 #include <Servo.h>
 
-const int buzzerPin = 6;
-const int trigPin = 10;
-const int echoPin = 9;
-const int servo1Pin = 3;
-const int servo2Pin = 5;
+const int ECHO_PIN = 9;
+const int TRIG_PIN = 10;
 
-long duration;
+const int BUZZER_PIN = 6;
+
+const int SERVO_1_PIN = 3;
+const int SERVO_2_PIN = 5;
+const int SERVO_ACTIVE_ANGLE = 90;
+
+const int LOOP_DELAY = 100;
+const int CLOSE_DELAY = 1500;
+
 int distance;
-
-bool isBeeped = false;
-
-//
-bool open = false;
-int openTime = 0;
-int minOpenTime = 1500;
+long duration;
+const int MIN_DISTANCE = 40;
 
 Servo servo1;
 Servo servo2;
 
+bool beeped = false;
 void beep()
 {
-  if (!isBeeped)
+  if (!beeped)
   {
-    isBeeped = true;
-    digitalWrite(buzzerPin, HIGH); // Turn on the buzzer
+    beeped = true;
+    digitalWrite(BUZZER_PIN, HIGH); // Turn on the buzzer
     delay(50);
-    digitalWrite(buzzerPin, LOW); // Turn off the buzzer
+    digitalWrite(BUZZER_PIN, LOW); // Turn off the buzzer
   }
 }
 
@@ -38,12 +39,12 @@ void servoWrite(int value)
 
 void setup()
 {
-  servo1.attach(servo1Pin);
-  servo2.attach(servo2Pin);
+  servo1.attach(SERVO_1_PIN);
+  servo2.attach(SERVO_2_PIN);
 
-  pinMode(trigPin, OUTPUT);
-  pinMode(echoPin, INPUT);
-  pinMode(buzzerPin, OUTPUT);
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
 
   servoWrite(0);
   Serial.begin(9600);
@@ -51,44 +52,36 @@ void setup()
 
 void loop()
 {
-  // Clear the trigPin by setting it LOW
-  digitalWrite(trigPin, LOW);
+  // Clear the TRIG_PIN by setting it LOW
+  digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);
 
   // Trigger the ultrasonic pulse
-  digitalWrite(trigPin, HIGH);
+  digitalWrite(TRIG_PIN, HIGH);
   delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
+  digitalWrite(TRIG_PIN, LOW);
 
-  // Read the echoPin
-  duration = pulseIn(echoPin, HIGH);
+  // Read the ECHO_PIN
+  duration = pulseIn(ECHO_PIN, HIGH);
 
-  // Calculate the distance
+  // Calculate the distance in cm
+  // 0.034: This is a conversion factor to convert the time (duration) into distance. Specifically, the speed of sound in air is approximately 343 meters per second, or 0.034 centimeters per microsecond.
+  // 2: Since the duration measures the time for the sound wave to travel to the object and back, we divide by 2 to get the one-way distance from the sensor to the object.
   distance = duration * 0.034 / 2;
 
-  // Print the distance to the Serial Monitor
-  Serial.print("Distance: ");
-  Serial.println(distance);
-
-  if (open)
-  {
-    openTime = openTime + 100;
-  }
-
-  if (!open && distance <= 40)
+  // Beep and open the lid
+  if (distance <= MIN_DISTANCE)
   {
     beep();
-    open = true;
-    servoWrite(90);
+    servoWrite(SERVO_ACTIVE_ANGLE);
+    delay(CLOSE_DELAY);
   }
-
-  if (distance > 40 && openTime > minOpenTime)
+  else
   {
-    open = false;
-    openTime = 0;
-    isBeeped = false;
+    beeped = false;
     servoWrite(0);
   }
 
-  delay(100);
+  // Continue the loop after delay
+  delay(LOOP_DELAY);
 }
