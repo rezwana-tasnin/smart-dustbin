@@ -7,14 +7,14 @@ const int BUZZER_PIN = 6;
 
 const int SERVO_1_PIN = 3;
 const int SERVO_2_PIN = 5;
-const int SERVO_ACTIVE_ANGLE = 90;
+const int SERVO_ACTIVE_ANGLE = 90; // degree
 
-const int LOOP_DELAY = 100;
-const int CLOSE_DELAY = 1500;
+const int LOOP_DELAY = 100;   // ms
+const int CLOSE_DELAY = 1500; // ms
 
 int distance;
 long duration;
-const int MIN_DISTANCE = 40;
+const int MIN_DISTANCE = 40; // cm
 
 Servo servo1;
 Servo servo2;
@@ -22,6 +22,7 @@ Servo servo2;
 bool beeped = false;
 void beep()
 {
+  // beep once while opening lid
   if (!beeped)
   {
     beeped = true;
@@ -39,14 +40,18 @@ void servoWrite(int value)
 
 void setup()
 {
+  // Attach the servo motors
   servo1.attach(SERVO_1_PIN);
   servo2.attach(SERVO_2_PIN);
 
+  // Reset the servo to initial position
+  servoWrite(0);
+
+  // Attach ultrasonic and buzzer
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
   pinMode(BUZZER_PIN, OUTPUT);
 
-  servoWrite(0);
   Serial.begin(9600);
 }
 
@@ -76,6 +81,7 @@ void loop()
     servoWrite(SERVO_ACTIVE_ANGLE);
     delay(CLOSE_DELAY);
   }
+  // Close the lid
   else
   {
     beeped = false;
